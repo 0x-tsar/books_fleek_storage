@@ -4,10 +4,20 @@ import Web3 from "web3";
 import Books from "./contracts/Books.json";
 import fleekStorage from "@fleekhq/fleek-storage-js";
 import { ToastContainer, toast } from "react-toastify";
-// import "react-toastif y/dist/ReactToastify.css";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
-  const notify = () => toast("Wow so easy!");
+  // const notify = () => toast("Wow so easy!");
+  const notify = () =>
+    toast("❌ All the 3 fields must be fulfilled", {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
 
   const [info, setInfo] = useState({
     bookContract: null,
@@ -57,7 +67,7 @@ function App() {
       // });Z
     } else {
       console.log("url not loaded yet..");
-      // notify();
+      notify();
       // <button onClick={notify}>Notify!</button>;
     }
   };
