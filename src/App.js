@@ -3,8 +3,12 @@ import { useState, useEffect, useRef } from "react";
 import Web3 from "web3";
 import Books from "./contracts/Books.json";
 import fleekStorage from "@fleekhq/fleek-storage-js";
+import { ToastContainer, toast } from "react-toastify";
+// import "react-toastif y/dist/ReactToastify.css";
 
 function App() {
+  const notify = () => toast("Wow so easy!");
+
   const [info, setInfo] = useState({
     bookContract: null,
     currentAddress: "",
@@ -27,6 +31,8 @@ function App() {
     url: "",
   });
 
+  const [whichNetwork, setWhichNetwork] = useState(1);
+
   const handler = (e) => {
     setState({
       [e.target.name]: e.target.value,
@@ -41,9 +47,17 @@ function App() {
         .createNewBook(state.title, state.price, state.url)
         .send({ from: info.currentAddress });
       console.log(tx);
-      setData((data) => [...data, ""]);
+      // setData((data) => [...data, ""]);
+      setData({ title: "", price: "", url: "" });
+      // setState({
+      //   title: "",
+      //   price: "",
+      //   url: "",
+      // });Z
     } else {
       console.log("url not loaded yet..");
+      // notify();
+      // <button onClick={notify}>Notify!</button>;
     }
   };
 
@@ -63,8 +77,8 @@ function App() {
 
     try {
       const uploadedFile = await fleekStorage.upload({
-        apiKey: "+Gxl/Kv/k+cdc1W4dTyP4Q==",
-        apiSecret: "+ldkPR3rw+7jp6j74Koi5/8JHHPD2zwx40uxekH1hEw=",
+        apiKey: "8XgMd1qAiL1VUb/azbDtXQ==",
+        apiSecret: "jrHQalOCwpM51vLBCI5odb1F/FkEcahP18yYLjpRvgM=",
         key: data.name,
         data: data,
       });
@@ -94,17 +108,20 @@ function App() {
     const loadingNetwork = async () => {
       if (window.ethereum !== undefined) {
         //crucial for getting this account
-        console.log(window.ethereum);
         window.ethereum.enable();
+        //metmask is being inject here to make the bridge between this DAapp and the
+        // blockchain, infura or ganache could also be used.
         const web3 = await new Web3(window.ethereum);
 
         const account = await web3.eth.getAccounts();
         const netId = await web3.eth.net.getId();
-        console.log(netId);
-        console.log(account);
 
         if (parseInt(window.ethereum.networkVersion) !== 42) {
-          alert("change to kovan network!");
+          // alert("change to kovan network!");
+          // setWhichNetwork(1)
+          return;
+        } else {
+          setWhichNetwork(42);
         }
 
         // detect Metamask account change
@@ -142,47 +159,52 @@ function App() {
   useEffect(() => {
     const done = async () => {
       try {
-        const contractAddress = info.bookContract._address;
-        const contractBalance = await info.bookContract.methods
-          .balanceOf(contractAddress)
-          .call();
-
-        //getting all ids from address
-        for (let i = 0; i < contractBalance; i++) {
-          let tokenId = await info.bookContract.methods
-            .tokenOfOwnerByIndex(contractAddress, i)
+        if (whichNetwork === 42) {
+          const contractAddress = info.bookContract._address;
+          const contractBalance = await info.bookContract.methods
+            .balanceOf(contractAddress)
             .call();
 
-          let token = await info.bookContract.methods
-            .tokenByIndex(tokenId)
-            .call();
+          console.log(`balance: ${contractBalance}`);
+          //getting all ids from address
+          // setData([]);
+          for (let i = 0; i < contractBalance; i++) {
+            let tokenId = await info.bookContract.methods
+              .tokenOfOwnerByIndex(contractAddress, i)
+              .call();
 
-          const tokenURI = await info.bookContract.methods
-            .tokenURI(token)
-            .call();
+            console.log(tokenId);
 
-          console.log(tokenURI);
+            let token = await info.bookContract.methods
+              .tokenByIndex(tokenId)
+              .call();
 
-          const urlToken = await info.bookContract.methods
-            .tokenToUrl(token)
-            .call();
+            const tokenURI = await info.bookContract.methods
+              .tokenURI(token)
+              .call();
 
-          console.log("url", urlToken);
+            console.log(tokenURI);
 
-          // getStorage
+            const urlToken = await info.bookContract.methods
+              .tokenToUrl(token)
+              .call();
 
-          // const BASE_URI = await info.bookContract.methods._baseURI().call();
-          // console.log(await info.bookContract.methods);
+            console.log("url", urlToken);
 
-          const metadata = await info.bookContract.methods
-            .booksByOwner(contractAddress, tokenId)
-            .call();
+            // const BASE_URI = await info.bookContract.methods._baseURI().call();
+            // console.log(await info.bookContract.methods);
 
-          console.log(metadata);
+            const metadata = await info.bookContract.methods
+              .booksByOwner(contractAddress, tokenId)
+              .call();
 
-          setData((data) => [...data, metadata]);
+            // console.log(metadata);
 
-          // console.log(tokenURI);
+            setData((data) => [...data, metadata]);
+
+            // console.log(tokenURI);
+          }
+        } else {
         }
       } catch (error) {
         // console.error(error);
@@ -193,6 +215,7 @@ function App() {
 
   return (
     <div className="App">
+      <ToastContainer />
       <h1>Book Store</h1>
 
       <div>
@@ -252,46 +275,47 @@ function App() {
         <br></br>
       </div>
 
-      <div>
-        {data.map((item, key) => {
-          return (
-            <div key={key}>
-              <div>{item.title}</div>
-              <div>{item.price}</div>
-              <div>{item.owner}</div>
+      {whichNetwork === 42 ? (
+        <div className="container">
+          {data.map((item, key) => {
+            console.log(item);
+            return (
+              <div key={key} className="card">
+                <div>{item.title}</div>
+                <div>{item.price}</div>
+                <div>{item.owner}</div>
 
-              <div>
-                <img
-                  style={{
-                    position: "absolute",
-                    marginLeft: 80,
-                    marginTop: 130,
-                    zIndex: -1,
-                  }}
-                  src="https://c.tenor.com/5o2p0tH5LFQAAAAi/hug.gif"
-                  width="40px"
-                  height="40px"
-                ></img>
-                <img
-                  style={{
-                    minWidth: "200px",
-                    minHeight: "300px",
-                    background: "rgba(0, 0, 0, 0.3)",
-                  }}
-                  src={`https://ipfs.io/ipfs/${item.url}`}
-                  placeholder
-                  alt="book img"
-                  width="200"
-                />
+                <div>
+                  <img
+                    style={{
+                      position: "absolute",
+                      marginLeft: 80,
+                      marginTop: 130,
+                      zIndex: -1,
+                    }}
+                    src="https://c.tenor.com/5o2p0tH5LFQAAAAi/hug.gif"
+                    width="40px"
+                    height="40px"
+                  ></img>
+                  <img
+                    style={{
+                      minWidth: "200px",
+                      minHeight: "300px",
+                      background: "rgba(0, 0, 0, 0.3)",
+                    }}
+                    src={`https://ipfs.io/ipfs/${item.url}`}
+                    placeholder
+                    alt="book img"
+                    width="200"
+                  />
 
-                <br></br>
+                  <br></br>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
 
-      {/* <button
+          {/* <button
         onClick={async () => {
           const value = Web3.utils.toWei("0.001");
           console.log(parseInt(value));
@@ -314,6 +338,10 @@ function App() {
       >
         Create new book
       </button> */}
+        </div>
+      ) : (
+        <div>YOU MUST CHANGE YOUR NETWORK TO KOVAN</div>
+      )}
     </div>
   );
 }
