@@ -49,6 +49,7 @@ function App() {
       console.log(tx);
       // setData((data) => [...data, ""]);
       setData({ title: "", price: "", url: "" });
+      window.location.reload();
       // setState({
       //   title: "",
       //   price: "",
@@ -63,8 +64,8 @@ function App() {
 
   const getStorage = async (fileName) => {
     const myFile = await fleekStorage.get({
-      apiKey: "+Gxl/Kv/k+cdc1W4dTyP4Q==",
-      apiSecret: "+ldkPR3rw+7jp6j74Koi5/8JHHPD2zwx40uxekH1hEw=",
+      apiKey: process.env.FLEEK_KEY,
+      apiSecret: process.env.FLEEK_PRIVATE,
       key: fileName,
       getOptions: ["data", "bucket", "key", "hash", "publicUrl"],
     });
@@ -77,8 +78,8 @@ function App() {
 
     try {
       const uploadedFile = await fleekStorage.upload({
-        apiKey: "8XgMd1qAiL1VUb/azbDtXQ==",
-        apiSecret: "jrHQalOCwpM51vLBCI5odb1F/FkEcahP18yYLjpRvgM=",
+        apiKey: process.env.FLEEK_KEY,
+        apiSecret: process.env.FLEEK_PRIVATE,
         key: data.name,
         data: data,
       });
@@ -297,6 +298,7 @@ function App() {
                     width="40px"
                     height="40px"
                   ></img>
+
                   <img
                     style={{
                       minWidth: "200px",
@@ -308,7 +310,6 @@ function App() {
                     alt="book img"
                     width="200"
                   />
-
                   <br></br>
                 </div>
               </div>
